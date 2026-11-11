@@ -1,0 +1,41 @@
+# Build artifacts
+OBJ.x86_64-pc-linux-gnu/
+*.o
+*.so
+i.maestro.opencl
+
+# Generated documentation
+i.maestro.opencl.html
+i.maestro.opencl.1
+*.tmp.html
+*.tmp.md
+
+# Generated OpenCL headers
+maestro_kernels_cl.h
+
+# Build logs
+build.log
+build.sh
+
+# IDE/Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Temporary files
+*.backup
+*.tmp
+
+# Project documentation (workspace-specific)
+TODO.md
+README_for_LLM.md
