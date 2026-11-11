@@ -85,7 +85,7 @@ void raster_read_plane(const char *name, const char *mapset,
 
         for (j = 0; j < image; j++) {
             const int sj = (int)((long)j * win.cols / image);
-            const double v = buf[(size_t)si * win.cols + sj];
+            double v = buf[(size_t)si * win.cols + sj];
 
             if (Rast_is_d_null_value(&v))
                 out[(size_t)i * image + j] = 0.0f;
@@ -110,7 +110,7 @@ void raster_out_open(struct raster_out *o, const char *name,
     o->cols = win->cols;
     o->cur_row = -1;
     o->name = G_store(name);
-    Rast_set_output_window(win);
+    o->win = *win; /* Store the full window for later use */
     o->fd = Rast_open_new(name, FCELL_TYPE);
     o->row = G_malloc((size_t)o->cols * sizeof(float));
     o->rb = G_malloc((size_t)g * o->cols * sizeof(float));
@@ -133,13 +133,22 @@ void raster_out_add(struct raster_out *o, int tile_row, int tile_col,
 void raster_out_flush(struct raster_out *o)
 {
     int y;
+    struct Cell_head out_win;
 
     if (o->cur_row < 0)
         return;
+    
+    /* Set output window to the current tile row */
+    out_win = o->win;
+    out_win.north = o->win.north - o->cur_row * o->win.ns_res;
+    out_win.south = out_win.north - o->g * o->win.ns_res;
+    out_win.rows = o->g;
+    Rast_set_output_window(&out_win);
+    
     for (y = 0; y < o->g; y++) {
         memcpy(o->row, o->rb + (size_t)y * o->cols,
                (size_t)o->cols * sizeof(float));
-        Rast_put_f_row(o->fd, o->cur_row * o->g + y, o->row);
+        Rast_put_f_row(o->fd, o->row);
     }
     o->cur_row = -1;
 }
@@ -151,9 +160,9 @@ void raster_out_close(struct raster_out *o)
     raster_out_flush(o);
     Rast_close(o->fd);
     Rast_short_history(o->name, "raster", &hist);
-    snprintf(hist.title, sizeof(hist.title), "MAESTRO embeddings");
-    snprintf(hist.datsrc_1, sizeof(hist.datsrc_1),
-             "MAESTRO multimodal encoder (i.maestro.opencl)");
+    Rast_set_history(&hist, HIST_TITLE, "MAESTRO embeddings");
+    Rast_set_history(&hist, HIST_DATSRC_1,
+                     "MAESTRO multimodal encoder (i.maestro.opencl)");
     Rast_write_history(o->name, &hist);
     G_free(o->row);
     G_free(o->rb);

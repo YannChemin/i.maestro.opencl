@@ -409,7 +409,7 @@ cl_mem ocl_alloc(struct ocl_backend *ocl, size_t n, const char *what)
     if (n > ocl->max_alloc)
         G_fatal_error(_("OpenCL: buffer <%s> needs %lu MiB, more than the "
                         "device maximum allocation of %lu MiB (reduce "
-                        "batch= or tile_meters=)")),
+                        "batch= or tile_meters=)"),
                       what, (unsigned long)(n >> 20),
                       (unsigned long)(ocl->max_alloc >> 20));
     /* A CPU device gets buffers in host memory. On an integrated GPU the

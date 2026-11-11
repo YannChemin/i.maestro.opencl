@@ -628,7 +628,7 @@ void maestro_model_init(struct maestro_model *m, struct ocl_backend *ocl,
     for (i = 0; i < m->nmods; i++) {
         struct maestro_mod *md = &m->mods[i];
         char name[256];
-        const long conv_shape[] = {EMB, -1, 1, 1};
+        long conv_shape[] = {EMB, -1, md->patch, md->patch};
         const long v_shape[] = {EMB};
 
         if (md->image % md->patch)
@@ -700,6 +700,8 @@ void maestro_model_init(struct maestro_model *m, struct ocl_backend *ocl,
         const long o_shape[] = {EMB, EMB};
         const long fc1_shape[] = {MLP, EMB};
         const long fc2_shape[] = {EMB, MLP};
+        const long fc1_bias_shape[] = {MLP};
+        const long fc2_bias_shape[] = {EMB};
 
         if (g < m->ngroups) {
             snprintf(name, sizeof(name), "model.encoder.%s.layers.0.0.norm.weight",
@@ -759,11 +761,11 @@ void maestro_model_init(struct maestro_model *m, struct ocl_backend *ocl,
             snprintf(name, sizeof(name), "%s.1.net.1.weight", pre);
             l->fc1_w = load_w(m, name, 2, fc1_shape);
             snprintf(name, sizeof(name), "%s.1.net.1.bias", pre);
-            l->fc1_b = load_dev(m, name, 1, v_shape);
+            l->fc1_b = load_dev(m, name, 1, fc1_bias_shape);
             snprintf(name, sizeof(name), "%s.1.net.4.weight", pre);
             l->fc2_w = load_w(m, name, 2, fc2_shape);
             snprintf(name, sizeof(name), "%s.1.net.4.bias", pre);
-            l->fc2_b = load_dev(m, name, 1, v_shape);
+            l->fc2_b = load_dev(m, name, 1, fc2_bias_shape);
         }
         if (g < m->ngroups)
             snprintf(name, sizeof(name), "model.encoder.%s.norm.weight",
