@@ -15,24 +15,23 @@ void raster_read_plane(const char *name, const char *mapset,
                        const struct Cell_head *tile, int image,
                        double norm_fac, int log_scale, float *out);
 
-/* An output raster of `bands` channels covering the tiles extent. Tiles
- * are added in row-major order; a complete tile row is written once its
- * last tile arrives. */
+/* An output raster of one embedding channel covering the tiles extent.
+ * Tiles are added in row-major order; a complete tile row is written
+ * once its last tile arrives. */
 struct raster_out {
-    int fd, bands, cols, g, tile_cols;
+    int fd, cols, g, tile_cols;
     float *row;  /* one output row, cols values */
-    float *rb;   /* bands * g * cols, the tile row being accumulated */
+    float *rb;   /* g * cols, the tile row being accumulated */
     int cur_row; /* tile row being accumulated, -1 when empty */
     char *name;
 };
 
 void raster_out_open(struct raster_out *o, const char *name,
-                     const struct Cell_head *win, int bands, int g,
-                     int tile_cols);
-/* Add the (g*g, bands) embedding of one tile at column block tile_col of
- * tile row tile_row. */
+                     const struct Cell_head *win, int g, int tile_cols);
+/* Add one channel of the (g*g, stride) embedding of one tile at column
+ * block tile_col of tile row tile_row. */
 void raster_out_add(struct raster_out *o, int tile_row, int tile_col,
-                    const float *emb);
+                    const float *emb, int stride, int band);
 void raster_out_flush(struct raster_out *o);
 void raster_out_close(struct raster_out *o);
 
