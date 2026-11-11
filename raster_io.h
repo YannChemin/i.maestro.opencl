@@ -24,6 +24,7 @@ struct raster_out {
     float *rb;   /* g * cols, the tile row being accumulated */
     int cur_row; /* tile row being accumulated, -1 when empty */
     char *name;
+    struct Cell_head win; /* full output window */
 };
 
 void raster_out_open(struct raster_out *o, const char *name,
