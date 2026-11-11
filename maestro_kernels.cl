@@ -186,9 +186,7 @@ void store_row8(__global float *C, __global const float *R,
 }
 
 /* Rank-1 update of the 8 x 8 block row r from A column value s. */
-#define ROW_FMA(r, s)                                                          \
-    c##r##0 = mad((float4)(s), b0, c##r##0);                                   \
-    c##r##1 = mad((float4)(s), b1, c##r##1)
+#define ROW_FMA(r, s) c##r##0 = mad((float4)(s), b0, c##r##0); c##r##1 = mad((float4)(s), b1, c##r##1)
 
 /* Same contract as gemm, for large, 16-byte aligned operands: 128 x 128
  * output tile per 16 x 16 work-group, 8 x 8 register block per item
@@ -365,7 +363,7 @@ __kernel void gemm_cpu_t(const int M, const int N, const int K,
     for (i = 0; i < 2; i++)
         for (j = 0; j < 4; j++)
             s[i][j] = 0.0f;
-    if (m0 + 1 < M && n0 + 3 < N) {
+    if (m0 + 1 < M && n0 + 3 < N && (lda % 8 == 0) && (ldb % 8 == 0)) {
         for (k = 0; k + 8 <= K; k += 8) {
             const float8 a0 = vload8(0, A + (long)m0 * lda + k);
             const float8 a1 = vload8(0, A + (long)(m0 + 1) * lda + k);
@@ -424,7 +422,7 @@ __kernel void gemm_cpu_n(const int M, const int N, const int K,
 
     for (i = 0; i < 4; i++)
         c[i] = 0.0f;
-    if (n0 + 7 < N) {
+    if (n0 + 7 < N && (ldb % 8 == 0) && (n0 % 8 == 0)) {
         for (k = 0; k < K; k++) {
             const float8 bv = LDB8(B + (long)k * ldb + n0);
 
